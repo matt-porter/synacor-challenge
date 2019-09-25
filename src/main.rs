@@ -28,6 +28,9 @@ impl System {
             match instruction {
                 0 => op_0_halt(self),
                 4 => idx = op_4_eq(self, idx),
+                6 => idx = op_6_jmp(self, idx),
+                7 => idx = op_7_jt(self, idx),
+                8 => idx = op_8_jf(self, idx),
                 9 => idx = op_9_add(self, idx),
                 19 => idx = op_19_out(self, idx),
                 21 => idx = op_21_noop(self, idx),
@@ -75,6 +78,45 @@ fn op_4_eq(system: &mut System, idx: usize) -> usize {
     };
     idx = idx + 1;
     idx
+}
+
+fn op_6_jmp(system: &mut System, idx: usize) -> usize {
+    let mut idx = idx + 1;
+    let addr = system.get(system.memory[idx]);
+    println!("DEBUG: jmp addr {}", addr);
+    addr as usize
+}
+
+/// jt: 7 a b
+/// if <a> is nonzero, jump to <b>
+fn op_7_jt(system: &mut System, idx: usize) -> usize {
+    let mut idx = idx + 1;
+    let check = system.get(system.memory[idx]);
+    idx = idx + 1;
+    let addr = system.get(system.memory[idx]);
+    if check > 0 {
+        println!("DEBUG: {} nonzero, jmp addr {}", check, addr);
+        addr as usize
+    } else {
+        println!("DEBUG: {} zero, continue to {}", check, idx+1);
+        idx + 1
+    }
+}
+
+/// jf: 8 a b
+/// if <a> is zero, jump to <b>
+fn op_8_jf(system: &mut System, idx: usize) -> usize {
+    let mut idx = idx + 1;
+    let check = system.get(system.memory[idx]);
+    idx = idx + 1;
+    let addr = system.get(system.memory[idx]);
+    if check == 0 {
+        println!("DEBUG: {} zero, jmp addr {}", check, addr);
+        addr as usize
+    } else {
+        println!("DEBUG: {} nonzero, continue to {}", check, idx+1);
+        idx + 1
+    }
 }
 
 fn op_9_add(system: &mut System, idx: usize) -> usize {
