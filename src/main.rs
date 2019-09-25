@@ -28,10 +28,22 @@ impl System {
             match instruction {
                 0 => op_0_halt(self),
                 4 => idx = op_4_eq(self, idx),
+                1 => idx = op_1_set(self, idx),
+                2 => idx = op_2_push(self, idx),
+                3 => idx = op_3_pop(self, idx),
+                5 => idx = op_5_gt(self, idx),
                 6 => idx = op_6_jmp(self, idx),
                 7 => idx = op_7_jt(self, idx),
                 8 => idx = op_8_jf(self, idx),
                 9 => idx = op_9_add(self, idx),
+                10 => idx = op_10_mul(self, idx),
+                11 => idx = op_11_mod(self, idx),
+                12 => idx = op_12_and(self, idx),
+                13 => idx = op_13_or(self, idx),
+                14 => idx = op_14_not(self, idx),
+                15 => idx = op_15_rmem(self, idx),
+                16 => idx = op_16_wmem(self, idx),
+                17 => idx = op_17_call(self, idx),
                 19 => idx = op_19_out(self, idx),
                 21 => idx = op_21_noop(self, idx),
                 x => {
@@ -48,10 +60,32 @@ impl System {
         }
     }
 
-    pub fn get(&mut self, value: u16) -> u16 {
+    pub fn get(&mut self, idx: usize) -> u16 {
+        let value = self.memory[idx];
         match value {
-            0..=32767 => value,
-            32768..=32775 => self.registers[(value as usize)-32768],
+            0..=32767 => {
+                // println!("Got literal value {}", value);
+                value
+            }
+            32768..=32775 => {
+                // println!("Got value {} from register {}", self.registers[(value as usize)-32768], (value as usize)-32768);
+                self.registers[(value-32768) as usize]
+            }
+            _ => unimplemented!(),
+        }
+    }
+
+    pub fn get_register(&mut self, idx: usize) -> usize {
+        let value = self.memory[idx];
+        match value {
+            0..=32767 => {
+                // println!("Got literal value {}", value);
+                unimplemented!()
+            }
+            32768..=32775 => {
+                // println!("Got value {} from register {}", self.registers[(value as usize)-32768], (value as usize)-32768);
+                (value-32768) as usize
+            }
             _ => unimplemented!(),
         }
     }
@@ -61,28 +95,73 @@ fn op_0_halt(system: &mut System) -> (){
     std::process::exit(0);
 }
 
+///set: 1 a b
+///set register <a> to the value of <b>
+fn op_1_set(system: &mut System, idx: usize) -> usize {
+    let mut idx = idx + 1;
+    // We want the /register/ not the value at the register.
+    let register = system.get_register(idx);
+    idx = idx + 1;
+    let value = system.get(idx);
+    println!("Setting r{} to {}", register, value);
+    system.registers[register] = value;
+    println!("Registers {:?}", system.registers);
+    idx + 1
+}
+
+fn op_2_push(system: &mut System, idx: usize) -> usize {
+    let idx = idx + 1;
+    let value = system.get(idx);
+    system.stack.push(value);
+    idx + 1
+}
+
+fn op_3_pop(system: &mut System, idx: usize) -> usize {
+    let idx = idx + 1;
+    let register = system.get_register(idx);
+    system.registers[register] = system.stack.pop().unwrap();
+    idx + 1
+}
+
 fn op_4_eq(system: &mut System, idx: usize) -> usize {
     // eq: 4 a b c
     // set <a> to 1 if <b> is equal to <c>; set it to 0 otherwise
     // consumes 3
     let mut idx = idx + 1;
-    let register = idx;
+    let register = system.get_register(idx);
     idx = idx + 1;
-    let lhs: u16 = system.memory[idx].try_into().unwrap();
+    let lhs: u16 = system.get(idx).try_into().unwrap();
     idx = idx + 1;
-    let rhs: u16 = system.memory[idx].try_into().unwrap();
-    system.registers[register as usize] = if lhs == rhs {
+    let rhs: u16 = system.get(idx).try_into().unwrap();
+    system.registers[register] = if lhs == rhs {
         1
     } else {
         0
     };
+    idx + 1
+}
+
+fn op_5_gt(system: &mut System, idx: usize) -> usize {
+    // eq: 5 a b c
+    // set <a> to 1 if <b> is greater than <c>; set it to 0 otherwise
+    // consumes 3
+    let mut idx = idx + 1;
+    let register = system.get_register(idx);
     idx = idx + 1;
-    idx
+    let lhs: u16 = system.get(idx).try_into().unwrap();
+    idx = idx + 1;
+    let rhs: u16 = system.get(idx).try_into().unwrap();
+    system.registers[register] = if lhs > rhs {
+        1
+    } else {
+        0
+    };
+    idx + 1
 }
 
 fn op_6_jmp(system: &mut System, idx: usize) -> usize {
     let mut idx = idx + 1;
-    let addr = system.get(system.memory[idx]);
+    let addr = system.get(idx);
     println!("DEBUG: jmp addr {}", addr);
     addr as usize
 }
@@ -91,14 +170,14 @@ fn op_6_jmp(system: &mut System, idx: usize) -> usize {
 /// if <a> is nonzero, jump to <b>
 fn op_7_jt(system: &mut System, idx: usize) -> usize {
     let mut idx = idx + 1;
-    let check = system.get(system.memory[idx]);
+    let check = system.get(idx);
     idx = idx + 1;
-    let addr = system.get(system.memory[idx]);
+    let addr = system.get(idx);
     if check > 0 {
-        println!("DEBUG: {} nonzero, jmp addr {}", check, addr);
+        println!("DEBUG: {} nonzero, jt addr {}", check, addr);
         addr as usize
     } else {
-        println!("DEBUG: {} zero, continue to {}", check, idx+1);
+        println!("DEBUG: {} jt zero, continue to {}", check, idx+1);
         idx + 1
     }
 }
@@ -107,14 +186,14 @@ fn op_7_jt(system: &mut System, idx: usize) -> usize {
 /// if <a> is zero, jump to <b>
 fn op_8_jf(system: &mut System, idx: usize) -> usize {
     let mut idx = idx + 1;
-    let check = system.get(system.memory[idx]);
+    let check = system.get(idx);
     idx = idx + 1;
-    let addr = system.get(system.memory[idx]);
+    let addr = system.get(idx);
     if check == 0 {
-        println!("DEBUG: {} zero, jmp addr {}", check, addr);
+        println!("DEBUG: {} zero, jf addr {}", check, addr);
         addr as usize
     } else {
-        println!("DEBUG: {} nonzero, continue to {}", check, idx+1);
+        println!("DEBUG: {} jf nonzero, continue to {}", check, idx+1);
         idx + 1
     }
 }
@@ -124,21 +203,121 @@ fn op_9_add(system: &mut System, idx: usize) -> usize {
     // assign into <a> the sum of <b> and <c> (modulo 32768)
     // consumes 3
     let mut idx = idx + 1;
-    let register = system.get(system.memory[idx]);
+    let register = system.get_register(idx);
     idx = idx + 1;
-    let lhs: u16 = system.get(system.memory[idx]).try_into().unwrap();
+    let lhs: u16 = system.get(idx).try_into().unwrap();
     idx = idx + 1;
-    let rhs: u16 = system.get(system.memory[idx]).try_into().unwrap();
+    let rhs: u16 = system.get(idx).try_into().unwrap();
     // println!("{} = {} + {}", register, lhs, rhs );
-    system.registers[register as usize] = lhs + rhs;
+    system.registers[register] = (lhs + rhs) % 32768;
+    idx + 1
+}
+
+fn op_10_mul(system: &mut System, idx: usize) -> usize {
+    // add: 9 a b c
+    // assign into <a> the sum of <b> and <c> (modulo 32768)
+    // consumes 3
+    let mut idx = idx + 1;
+    let register = system.get_register(idx);
     idx = idx + 1;
-    idx
+    let lhs: u16 = system.get(idx).try_into().unwrap();
+    idx = idx + 1;
+    let rhs: u16 = system.get(idx).try_into().unwrap();
+    // println!("{} = {} + {}", register, lhs, rhs );
+    system.registers[register] = ((lhs as u32 * rhs as u32) % 32768) as u16;
+    idx + 1
+}
+
+fn op_11_mod(system: &mut System, idx: usize) -> usize {
+    // add: 9 a b c
+    // assign into <a> the sum of <b> and <c> (modulo 32768)
+    // consumes 3
+    let mut idx = idx + 1;
+    let register = system.get_register(idx);
+    idx = idx + 1;
+    let lhs: u16 = system.get(idx).try_into().unwrap();
+    idx = idx + 1;
+    let rhs: u16 = system.get(idx).try_into().unwrap();
+    // println!("{} = {} + {}", register, lhs, rhs );
+    let div = lhs/rhs;
+
+    system.registers[register] = lhs - (div * rhs) ;
+    idx + 1
+}
+
+fn op_12_and(system: &mut System, idx: usize) -> usize {
+    // and: 12 a b c
+    // assign into <a> the sum of <b> and <c> (modulo 32768)
+    // consumes 3
+    let mut idx = idx + 1;
+    let register = system.get_register(idx);
+    idx = idx + 1;
+    let lhs: u16 = system.get(idx).try_into().unwrap();
+    idx = idx + 1;
+    let rhs: u16 = system.get(idx).try_into().unwrap();
+    // println!("{} = {} + {}", register, lhs, rhs );
+    system.registers[register] = lhs & rhs;
+    idx + 1
+}
+
+fn op_13_or(system: &mut System, idx: usize) -> usize {
+    // and: 13 a b c
+    // assign into <a> the sum of <b> and <c> (modulo 32768)
+    // consumes 3
+    let mut idx = idx + 1;
+    let register = system.get_register(idx);
+    idx = idx + 1;
+    let lhs: u16 = system.get(idx).try_into().unwrap();
+    idx = idx + 1;
+    let rhs: u16 = system.get(idx).try_into().unwrap();
+    // println!("{} = {} + {}", register, lhs, rhs );
+    system.registers[register] = lhs | rhs;
+    idx + 1
+}
+
+fn op_14_not(system: &mut System, idx: usize) -> usize {
+    // consumes 2
+    let mut idx = idx + 1;
+    let register = system.get_register(idx);
+    idx = idx + 1;
+    let lhs: u16 = system.get(idx).try_into().unwrap();
+    println!("{:b}", lhs);
+    println!("{:b}", !lhs);
+    println!("{:b}", (!lhs) << 1);
+    system.registers[register] = !lhs & 0b111111111111111;
+    idx + 1
+}
+
+fn op_15_rmem(system: &mut System, idx: usize) -> usize {
+    // consumes 2
+    let mut idx = idx + 1;
+    let register = system.get_register(idx);
+    idx = idx + 1;
+    let lhs = system.get(idx);
+    system.registers[register] = lhs;
+    idx + 1
+}
+
+fn op_16_wmem(system: &mut System, idx: usize) -> usize {
+    // consumes 2
+    let mut idx = idx + 1;
+    let addr = system.get(idx);
+    idx = idx + 1;
+    let lhs: u16 = system.get(idx).try_into().unwrap();
+    system.memory[addr as usize] = lhs;
+    idx + 1
+}
+
+fn op_17_call(system: &mut System, idx: usize) -> usize {
+    system.stack.push((idx as u16) + 2);
+    let mut idx = idx + 1;
+    system.get(idx) as usize
 }
 
 fn op_19_out(system: &mut System, idx: usize) -> usize {
     // consumes one
     let mut idx = idx + 1;
-    let raw = system.get(system.memory[idx]);
+    let raw = system.get(idx);
     // println!("DEBUG: {}", raw);
     let value: u8 = raw.try_into().unwrap();
     // println!("DEBUG: {}", value);
@@ -151,7 +330,7 @@ fn op_19_out(system: &mut System, idx: usize) -> usize {
 fn op_20_in(system: &mut System, idx: usize) -> usize {
     // consumes one
     let mut idx = idx + 1;
-    let register: u8 = system.memory[idx].try_into().unwrap();
+    let register = system.get_register(idx);
 
     let mut buffer = String::new();
     let stdin = io::stdin();
@@ -159,7 +338,7 @@ fn op_20_in(system: &mut System, idx: usize) -> usize {
     handle.read_to_string(&mut buffer).unwrap();
     let c = buffer.chars().next().unwrap();
     let ascii = c as u32;
-    system.registers[register as usize] = ascii.try_into().unwrap();
+    system.registers[register] = ascii.try_into().unwrap();
     idx = idx + 1;
     idx
 }
@@ -201,7 +380,7 @@ fn main() {
     let v1 = 255u8;
     let v2 = 255u8;
     let v3 = (v1 as u16) << 8;
-    let v4 = (v2 as u16);
+    let v4 = v2 as u16;
     let v5 = v3 + v4;
     // println!("{:b} {:b} {:b} {:b} {}", v1, v2, v3, v4, v5);
     let input = read_bin().unwrap();
