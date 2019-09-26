@@ -162,7 +162,6 @@ fn op_5_gt(system: &mut System, idx: usize) -> usize {
 fn op_6_jmp(system: &mut System, idx: usize) -> usize {
     let mut idx = idx + 1;
     let addr = system.get(idx);
-    println!("DEBUG: jmp addr {}", addr);
     addr as usize
 }
 
@@ -174,10 +173,10 @@ fn op_7_jt(system: &mut System, idx: usize) -> usize {
     idx = idx + 1;
     let addr = system.get(idx);
     if check > 0 {
-        println!("DEBUG: {} nonzero, jt addr {}", check, addr);
+        // println!("DEBUG: {} nonzero, jt addr {}", check, addr);
         addr as usize
     } else {
-        println!("DEBUG: {} jt zero, continue to {}", check, idx+1);
+        // println!("DEBUG: {} jt zero, continue to {}", check, idx+1);
         idx + 1
     }
 }
@@ -190,10 +189,10 @@ fn op_8_jf(system: &mut System, idx: usize) -> usize {
     idx = idx + 1;
     let addr = system.get(idx);
     if check == 0 {
-        println!("DEBUG: {} zero, jf addr {}", check, addr);
+        // println!("DEBUG: {} zero, jf addr {}", check, addr);
         addr as usize
     } else {
-        println!("DEBUG: {} jf nonzero, continue to {}", check, idx+1);
+        // println!("DEBUG: {} jf nonzero, continue to {}", check, idx+1);
         idx + 1
     }
 }
@@ -281,19 +280,19 @@ fn op_14_not(system: &mut System, idx: usize) -> usize {
     let register = system.get_register(idx);
     idx = idx + 1;
     let lhs: u16 = system.get(idx).try_into().unwrap();
-    println!("{:b}", lhs);
-    println!("{:b}", !lhs);
-    println!("{:b}", (!lhs) << 1);
     system.registers[register] = !lhs & 0b111111111111111;
     idx + 1
 }
 
 fn op_15_rmem(system: &mut System, idx: usize) -> usize {
     // consumes 2
+    println!("Registers {:?}", system.registers);
     let mut idx = idx + 1;
     let register = system.get_register(idx);
     idx = idx + 1;
-    let lhs = system.get(idx);
+    let addr = system.get(idx) as usize;
+    let lhs = system.get(addr);
+    println!("DEBUG: rmem: set r{} to {}", register, lhs);
     system.registers[register] = lhs;
     idx + 1
 }
@@ -304,6 +303,7 @@ fn op_16_wmem(system: &mut System, idx: usize) -> usize {
     let addr = system.get(idx);
     idx = idx + 1;
     let lhs: u16 = system.get(idx).try_into().unwrap();
+    println!("DEBUG: wmem: set a{} to {}", addr, lhs);
     system.memory[addr as usize] = lhs;
     idx + 1
 }
