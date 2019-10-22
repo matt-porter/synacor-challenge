@@ -340,9 +340,6 @@ fn op_19_out(system: &mut System, idx: usize) -> usize {
     let value: u8 = raw.try_into().unwrap();
     //debug!("DEBUG: {}", value);
     let valuec: char = value.into();
-    if valuec == '=' {
-        debug!("= at idx {}", idx-1);
-    }
     print!("{}", valuec);
     idx = idx + 1;
     idx
@@ -356,9 +353,6 @@ fn op_20_in(system: &mut System, idx: usize) -> usize {
     let mut buffer: [u8; 1] = [0];
     let stdin = io::stdin().read_exact(&mut buffer);
     let c = buffer[0];
-    if c == '\n' {
-        debug!("newline input {}", idx);
-    }
     let ascii = c as u32;
     system.registers[register] = ascii.try_into().unwrap();
     idx = idx + 1;
