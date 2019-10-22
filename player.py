@@ -14,10 +14,10 @@ def route_to_dot(route):
         f.write('digraph g {\n')
         for ((choice1, loc_id1), (choice2, loc_id2)) in zip(route, route[1:]):
             if (loc_id1, loc_id2, choice2) not in uniq:
-                f.write('{} -> {} [label={}];\n'.format(loc_id1, loc_id2, choice2))
+                f.write('{} -> {} [label="{}"];\n'.format(loc_id1, loc_id2, choice2))
                 uniq.add((loc_id1, loc_id2, choice2))
         f.write('}\n')
-    pexpect.spawn('dot -x -Tpng route.dot -o route.png')
+#    pexpect.spawn('/usr/local/bin/dot -x -Tpng route.dot -o route.png')
 
 def find_location(text):
     return 'L' + hashlib.sha256(''.join(text.split('\r\n'))[:2].encode()).hexdigest()
@@ -69,6 +69,7 @@ def run():
         for i in items:
             print('Location: {} Take: {}'.format(location_id, i))
             child.sendline('take ' + i)
+            this_route.append(('take ' + i, location_id))
             continue
         choice = random.choice(options)
         this_route.append((choice,None))
