@@ -1,3 +1,4 @@
+#[macro_use] extern crate log;
 
 use std::convert::TryInto;
 use std::io::{self, Read};
@@ -19,12 +20,12 @@ impl System {
     }
 
     pub fn execute(&mut self) -> () {
-        // println!("Running...");
+        // debug!("Running...");
         let mut idx: usize = 0;
         loop {
-            // println!("DEBUG: idx: {}", idx);
+            // debug!("idx: {}", idx);
             let instruction = self.memory[idx];
-            // println!("DEBUG: instruction: {}", instruction);
+            // debug!("DEBUG: instruction: {}", instruction);
             match instruction {
                 0 => op_0_halt(self),
                 1 => idx = op_1_set(self, idx),
@@ -49,7 +50,7 @@ impl System {
                 20 => idx = op_20_in(self, idx),
                 21 => idx = op_21_noop(self, idx),
                 x => {
-                    println!("OP {} unimplemented", x);
+                    debug!("OP {} unimplemented", x);
                     unimplemented!();
                     }
             }
@@ -66,11 +67,11 @@ impl System {
         let value = self.memory[idx];
         match value {
             0..=32767 => {
-                // println!("Got literal value {}", value);
+                // debug!("Got literal value {}", value);
                 value
             }
             32768..=32775 => {
-                // println!("Got value {} from register {}", self.registers[(value as usize)-32768], (value as usize)-32768);
+                // debug!("Got value {} from register {}", self.registers[(value as usize)-32768], (value as usize)-32768);
                 self.registers[(value-32768) as usize]
             }
             _ => unimplemented!(),
@@ -81,11 +82,11 @@ impl System {
         let value = self.memory[idx];
         match value {
             0..=32767 => {
-                // println!("Got literal value {}", value);
+                // debug!("Got literal value {}", value);
                 unimplemented!()
             }
             32768..=32775 => {
-                // println!("Got value {} from register {}", self.registers[(value as usize)-32768], (value as usize)-32768);
+                // debug!("Got value {} from register {}", self.registers[(value as usize)-32768], (value as usize)-32768);
                 (value-32768) as usize
             }
             _ => unimplemented!(),
@@ -105,9 +106,9 @@ fn op_1_set(system: &mut System, idx: usize) -> usize {
     let register = system.get_register(idx);
     idx = idx + 1;
     let value = system.get(idx);
-    //println!("Setting r{} to {}", register, value);
+    //debug!("Setting r{} to {}", register, value);
     system.registers[register] = value;
-    //println!("Registers {:?}", system.registers);
+    //debug!("Registers {:?}", system.registers);
     idx + 1
 }
 
@@ -136,8 +137,10 @@ fn op_4_eq(system: &mut System, idx: usize) -> usize {
     idx = idx + 1;
     let rhs: u16 = system.get(idx).try_into().unwrap();
     system.registers[register] = if lhs == rhs {
+        // debug!("{} == {}; set r{} to 1", lhs, rhs, register);
         1
     } else {
+        // debug!("{} != {}; set r{} to ", lhs, rhs, register);
         0
     };
     idx + 1
@@ -164,7 +167,7 @@ fn op_5_gt(system: &mut System, idx: usize) -> usize {
 fn op_6_jmp(system: &mut System, idx: usize) -> usize {
     let mut idx = idx + 1;
     let addr = system.get(idx);
-    println!("Jump {}", addr);
+    // debug!("Jump {}", addr);
     addr as usize
 }
 
@@ -176,13 +179,12 @@ fn op_7_jt(system: &mut System, idx: usize) -> usize {
     idx = idx + 1;
     let addr = system.get(idx);
     let target = if check > 0 {
-        //println!("DEBUG: {} nonzero, jt addr {}", check, addr);
+        // debug!("{} nonzero, jt addr {}", check, addr);
         addr as usize
     } else {
-        //println!("DEBUG: {} jt zero, continue to {}", check, idx+1);
+        // debug!("{} jt zero, continue to {}", check, idx+1);
         idx + 1
     };
-    println!("Jump T {}", target);
     target
 }
 
@@ -194,13 +196,12 @@ fn op_8_jf(system: &mut System, idx: usize) -> usize {
     idx = idx + 1;
     let addr = system.get(idx);
     let target = if check == 0 {
-        //println!("DEBUG: {} zero, jf addr {}", check, addr);
+        // debug!("{} zero, jf addr {}", check, addr);
         addr as usize
     } else {
-        //println!("DEBUG: {} jf nonzero, continue to {}", check, idx+1);
+        // debug!("{} jf nonzero, continue to {}", check, idx+1);
         idx + 1
     };
-    println!("Jump F {}", target);
     target
 }
 
@@ -214,7 +215,7 @@ fn op_9_add(system: &mut System, idx: usize) -> usize {
     let lhs: u16 = system.get(idx).try_into().unwrap();
     idx = idx + 1;
     let rhs: u16 = system.get(idx).try_into().unwrap();
-    // println!("{} = {} + {}", register, lhs, rhs );
+    // debug!("{} = {} + {}", register, lhs, rhs );
     system.registers[register] = (lhs + rhs) % 32768;
     idx + 1
 }
@@ -229,7 +230,7 @@ fn op_10_mul(system: &mut System, idx: usize) -> usize {
     let lhs: u16 = system.get(idx).try_into().unwrap();
     idx = idx + 1;
     let rhs: u16 = system.get(idx).try_into().unwrap();
-    // println!("{} = {} + {}", register, lhs, rhs );
+    // debug!("{} = {} + {}", register, lhs, rhs );
     system.registers[register] = ((lhs as u32 * rhs as u32) % 32768) as u16;
     idx + 1
 }
@@ -244,7 +245,7 @@ fn op_11_mod(system: &mut System, idx: usize) -> usize {
     let lhs: u16 = system.get(idx).try_into().unwrap();
     idx = idx + 1;
     let rhs: u16 = system.get(idx).try_into().unwrap();
-    // println!("{} = {} + {}", register, lhs, rhs );
+    // debug!("{} = {} + {}", register, lhs, rhs );
     let div = lhs/rhs;
 
     system.registers[register] = lhs - (div * rhs) ;
@@ -261,7 +262,7 @@ fn op_12_and(system: &mut System, idx: usize) -> usize {
     let lhs: u16 = system.get(idx).try_into().unwrap();
     idx = idx + 1;
     let rhs: u16 = system.get(idx).try_into().unwrap();
-    // println!("{} = {} + {}", register, lhs, rhs );
+    // debug!("{} = {} + {}", register, lhs, rhs );
     system.registers[register] = lhs & rhs;
     idx + 1
 }
@@ -276,7 +277,7 @@ fn op_13_or(system: &mut System, idx: usize) -> usize {
     let lhs: u16 = system.get(idx).try_into().unwrap();
     idx = idx + 1;
     let rhs: u16 = system.get(idx).try_into().unwrap();
-    // println!("{} = {} + {}", register, lhs, rhs );
+    // debug!("{} = {} + {}", register, lhs, rhs );
     system.registers[register] = lhs | rhs;
     idx + 1
 }
@@ -293,13 +294,13 @@ fn op_14_not(system: &mut System, idx: usize) -> usize {
 
 fn op_15_rmem(system: &mut System, idx: usize) -> usize {
     // consumes 2
-    //println!("Registers {:?}", system.registers);
+    //debug!("Registers {:?}", system.registers);
     let mut idx = idx + 1;
     let register = system.get_register(idx);
     idx = idx + 1;
     let addr = system.get(idx) as usize;
     let lhs = system.get(addr);
-    //println!("DEBUG: rmem: set r{} to {}", register, lhs);
+    //debug!("DEBUG: rmem: set r{} to {}", register, lhs);
     system.registers[register] = lhs;
     idx + 1
 }
@@ -310,7 +311,7 @@ fn op_16_wmem(system: &mut System, idx: usize) -> usize {
     let addr = system.get(idx);
     idx = idx + 1;
     let lhs: u16 = system.get(idx).try_into().unwrap();
-    //println!("DEBUG: wmem: set a{} to {}", addr, lhs);
+    //debug!("DEBUG: wmem: set a{} to {}", addr, lhs);
     system.memory[addr as usize] = lhs;
     idx + 1
 }
@@ -335,10 +336,13 @@ fn op_19_out(system: &mut System, idx: usize) -> usize {
     // consumes one
     let mut idx = idx + 1;
     let raw = system.get(idx);
-    //println!("DEBUG: {}", raw);
+    //debug!("DEBUG: {}", raw);
     let value: u8 = raw.try_into().unwrap();
-    //println!("DEBUG: {}", value);
+    //debug!("DEBUG: {}", value);
     let valuec: char = value.into();
+    if valuec == '=' {
+        debug!("= at idx {}", idx-1);
+    }
     print!("{}", valuec);
     idx = idx + 1;
     idx
@@ -352,6 +356,9 @@ fn op_20_in(system: &mut System, idx: usize) -> usize {
     let mut buffer: [u8; 1] = [0];
     let stdin = io::stdin().read_exact(&mut buffer);
     let c = buffer[0];
+    if c == '\n' {
+        debug!("newline input {}", idx);
+    }
     let ascii = c as u32;
     system.registers[register] = ascii.try_into().unwrap();
     idx = idx + 1;
@@ -380,7 +387,7 @@ fn read_bin() -> io::Result<Vec<u16>> {
     for pair in iter {
         match pair {
             [v1, v2] => {
-                // println!("{:b} {:b}", v1, v2);
+                // debug!("{:b} {:b}", v1, v2);
                 bin.push((*v2 as u16).checked_shl(8).unwrap() + (*v1 as u16));
             }
             _ => break
@@ -391,13 +398,14 @@ fn read_bin() -> io::Result<Vec<u16>> {
 }
 
 fn main() {
+    env_logger::init();
     let mut system = System::init();
     let v1 = 255u8;
     let v2 = 255u8;
     let v3 = (v1 as u16) << 8;
     let v4 = v2 as u16;
     let v5 = v3 + v4;
-    // println!("{:b} {:b} {:b} {:b} {}", v1, v2, v3, v4, v5);
+    // debug!("{:b} {:b} {:b} {:b} {}", v1, v2, v3, v4, v5);
     let input = read_bin().unwrap();
     system.load(&input);
     system.execute()

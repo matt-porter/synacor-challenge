@@ -1,0 +1,97 @@
+   Compiling synacor v0.1.0 (/home/matt/Projects/synacor-challenge)
+warning: unused import: `std::io::prelude::*`
+   --> src/main.rs:375:5
+    |
+375 | use std::io::prelude::*;
+    |     ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` on by default
+
+warning: unreachable expression
+   --> src/main.rs:330:9
+    |
+330 |         0
+    |         ^
+    |
+    = note: `#[warn(unreachable_code)]` on by default
+
+warning: unused variable: `system`
+  --> src/main.rs:97:14
+   |
+97 | fn op_0_halt(system: &mut System) -> (){
+   |              ^^^^^^ help: consider prefixing with an underscore: `_system`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `idx`
+   --> src/main.rs:325:35
+    |
+325 | fn op_18_ret(system: &mut System, idx: usize) -> usize {
+    |                                   ^^^ help: consider prefixing with an underscore: `_idx`
+
+warning: unused variable: `stdin`
+   --> src/main.rs:357:9
+    |
+357 |     let stdin = io::stdin().read_exact(&mut buffer);
+    |         ^^^^^ help: consider prefixing with an underscore: `_stdin`
+
+warning: unused variable: `system`
+   --> src/main.rs:365:15
+    |
+365 | fn op_21_noop(system: &mut System, idx: usize) -> usize {
+    |               ^^^^^^ help: consider prefixing with an underscore: `_system`
+
+warning: unused variable: `v5`
+   --> src/main.rs:404:9
+    |
+404 |     let v5 = v3 + v4;
+    |         ^^ help: consider prefixing with an underscore: `_v5`
+
+warning: variable does not need to be mutable
+   --> src/main.rs:168:9
+    |
+168 |     let mut idx = idx + 1;
+    |         ----^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: variable does not need to be mutable
+   --> src/main.rs:321:9
+    |
+321 |     let mut idx = idx + 1;
+    |         ----^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> src/main.rs:383:9
+    |
+383 |     let mut iter = buffer.chunks(2);
+    |         ----^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: enum is never used: `Value`
+   --> src/main.rs:369:1
+    |
+369 | enum Value {
+    | ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+    Finished dev [unoptimized + debuginfo] target(s) in 2.18s
+     Running `target/debug/synacor`
+[2019-09-30T20:28:59Z DEBUG synacor] = at idx 3037
+[2019-09-30T20:28:59Z DEBUG synacor] = at idx 3039
+[2019-09-30T20:28:59Z DEBUG synacor] = at idx 3054
+[2019-09-30T20:28:59Z DEBUG synacor] = at idx 3056
+[2019-09-30T20:30:15Z DEBUG synacor] = at idx 3037
+[2019-09-30T20:30:15Z DEBUG synacor] = at idx 3039
+[2019-09-30T20:30:15Z DEBUG synacor] = at idx 3054
+[2019-09-30T20:30:15Z DEBUG synacor] = at idx 3056
+[2019-09-30T20:32:24Z DEBUG synacor] = at idx 3037
+[2019-09-30T20:32:24Z DEBUG synacor] = at idx 3039
+[2019-09-30T20:32:24Z DEBUG synacor] = at idx 3054
+[2019-09-30T20:32:24Z DEBUG synacor] = at idx 3056
