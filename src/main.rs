@@ -164,7 +164,7 @@ fn op_5_gt(system: &mut System, idx: usize) -> usize {
 fn op_6_jmp(system: &mut System, idx: usize) -> usize {
     let mut idx = idx + 1;
     let addr = system.get(idx);
-    println!("Jump {}", addr);
+    // println!("Jump {}", addr);
     addr as usize
 }
 
@@ -182,7 +182,7 @@ fn op_7_jt(system: &mut System, idx: usize) -> usize {
         //println!("DEBUG: {} jt zero, continue to {}", check, idx+1);
         idx + 1
     };
-    println!("Jump T {}", target);
+    // println!("Jump T {}", target);
     target
 }
 
@@ -200,7 +200,7 @@ fn op_8_jf(system: &mut System, idx: usize) -> usize {
         //println!("DEBUG: {} jf nonzero, continue to {}", check, idx+1);
         idx + 1
     };
-    println!("Jump F {}", target);
+    // println!("Jump F {}", target);
     target
 }
 
