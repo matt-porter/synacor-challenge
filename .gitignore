@@ -2,3 +2,4 @@ route.dot
 route.png
 /target
 **/*.rs.bk
+all_paths*

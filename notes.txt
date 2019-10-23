@@ -1,0 +1,25 @@
+
+Your inventory:
+- tablet
+- lit lantern
+- red coin = 2
+- corroded coin = 3
+- shiny coin = 5
+- concave coin = 7
+- blue coin = 9
+
+blue, red, shiny, concave, corroded
+
+== Ruins ==
+You stand in the massive central hall of these ruins.  The walls are crumbling, and vegetation has clearly taken over.  Rooms are attached in all directions.  There is a strange monument in the center of the hall with circular slots and unusual symbols.  It reads:
+
+_ + _ * _^2 + _^3 - _ = 399
+
+import itertools
+values = (2,3,5,7,9)
+perms = itertools.permutations(values)
+for p in perms:
+    a,b,c,d,e = p
+    res = a+b*c**2+d**3-e
+    if res == 399:
+      print("{} + {} * {}^2 + {}^3 - {} = {}".format(a,b,c,d,e, a+b*c**2+d**3-e))
