@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "attach",
             "name": "Attach",
-            "program": "synacor"
+            "program": "target/release/synacor"
         },
 
         {

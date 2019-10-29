@@ -52,10 +52,10 @@ def run():
     previous_choices = set()
     all_paths = []
     title = ''
-    for attempt in range(50):
+    for attempt in range(5):
         child = pexpect.spawn('target/release/synacor')
         this_route = []
-        for move in range(200):
+        for move in range(2000):
             # if move == 990:
             #     child.interact()
             #     return

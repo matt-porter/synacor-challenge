@@ -1,5 +1,7 @@
+*.dump
 route.dot
 route.png
+routes/*
 /target
 **/*.rs.bk
 all_paths*
